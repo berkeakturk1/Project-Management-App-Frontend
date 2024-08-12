@@ -13,7 +13,9 @@ interface Note {
   content: string;
   status: string;
   importance: string;
+  assignedUsers: string[]; // New field to store usernames
 }
+
 
 const columns = {
   todo: "TO DO",
@@ -93,11 +95,12 @@ const App = () => {
         }
   
         const notes = data.map((task: any) => ({
-          id: task.m_id, // Ensure this field is correctly mapped
+          id: task.m_id, 
           title: task.task_title,
           content: task.task_content,
           status: task.status,
-          importance: task.importance
+          importance: task.importance,
+          assignedUsers: task.assigned_users || [] // Store the usernames
         }));
   
         setNotes(notes);
@@ -108,6 +111,7 @@ const App = () => {
   
     fetchNotes();
   }, [taskboardId, navigate]);
+  
 
   const handleAddNote = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -156,7 +160,6 @@ const App = () => {
   };
 
   const handleUpdateNote = async (event: React.FormEvent) => {
-    event.preventDefault();
 
     if (!selectedNote) {
         console.error("No note selected for updating.");
@@ -449,37 +452,53 @@ const App = () => {
                       return (
                         <Draggable key={note.id} draggableId={note.id.toString()} index={index}>
                           {(provided) => (
-                            <div
-                              className="note-item"
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              onClick={() => handleNoteClick(note)}
-                            >
-                              <div className="notes-header">
-                                {note.status === "done" ? (
-                                  <button onClick={(event) => handleDeleteNote(note.id, event)}>
-                                    🗑️
-                                  </button>
-                                ) : note.status === "todo" ? (
-                                  <button onClick={(event) => handleDeleteNote(note.id, event)}>
-                                    ❌
-                                  </button>
-                                ) : null}
-                              </div>
-                              <div className="note-title">{note.title}</div>
-                              <div className="note-content"><p>{note.content}</p></div>
-                              <div className="note-importance">
-                                <span className={`importance-tag ${note.importance.replace(/\s+/g, '-').toLowerCase()}`}>
-                                  {note.importance}
-                                </span>
-                              </div>
-                              {note.status === "done" && (
-                                <div className="checkmark-icon">
-                                  ✅ 
-                                </div>
-                              )}
+                            <div className="note-item"
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            onClick={() => handleNoteClick(note)}
+                          >
+                            <div className="notes-header">
+                              {note.status === "done" ? (
+                                <button onClick={(event) => handleDeleteNote(note.id, event)}>
+                                  🗑️
+                                </button>
+                              ) : note.status === "todo" ? (
+                                <button onClick={(event) => handleDeleteNote(note.id, event)}>
+                                  ❌
+                                </button>
+                              ) : null}
                             </div>
+                            <div className="note-title">{note.title}</div>
+                            <div className="note-content">
+                              <p>{note.content}</p>
+                              <div className="note-assigned-users">
+                                {note.assignedUsers.length > 0 ? (
+                                  <div>
+                                    <strong>Assigned to:</strong>
+                                    <ul>
+                                      {note.assignedUsers.map((username) => (
+                                        <li key={username}>{username}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ) : (
+                                  <p>No users assigned</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="note-importance">
+                              <span className={`importance-tag ${note.importance.replace(/\s+/g, '-').toLowerCase()}`}>
+                                {note.importance}
+                              </span>
+                            </div>
+                            {note.status === "done" && (
+                              <div className="checkmark-icon">
+                                ✅ 
+                              </div>
+                            )}
+                          </div>
+                          
                           )}
                         </Draggable>
                       );

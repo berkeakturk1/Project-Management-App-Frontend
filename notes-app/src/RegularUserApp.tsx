@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./App.css";
 import AppBar from "./Appbar";
+import { jwtDecode } from "jwt-decode";
 
 interface Note {
   id: number;
@@ -9,6 +10,7 @@ interface Note {
   content: string;
   status: string;
   importance: string;
+  assignedUsers: string[]; // New field to store usernames
 }
 
 const columns = {
@@ -30,7 +32,19 @@ const RegularUserApp = () => {
   const [userTaskboardId, setUserTaskboardId] = useState<string | null>(null);
 
   const { taskboardId } = useParams<{ taskboardId: string }>();
-  const navigate = useNavigate(); // Initialize navigate,
+  const navigate = useNavigate();
+
+  const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
+
+// Fetch the logged-in user's ID from the token
+useEffect(() => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    const decodedToken: any = jwtDecode(token); // Use a JWT decoding library
+    setLoggedInUserId(decodedToken.userId);
+  }
+}, []);
+
 
   useEffect(() => {
     const fetchTaskboardId = async () => {
@@ -38,10 +52,10 @@ const RegularUserApp = () => {
         const token = localStorage.getItem('token');
         const response = await fetch(`/api/user_taskboard_id`, {
           headers: {
-            'Authorization': `Bearer ${token}` // Add Bearer prefix
+            'Authorization': `Bearer ${token}`
           }
         });
-    
+
         if (!response.ok) {
           if (response.status === 403) {
             console.error('Access denied to the taskboard');
@@ -49,7 +63,7 @@ const RegularUserApp = () => {
           }
           throw new Error(`Failed to fetch user taskboard ID: ${response.statusText}`);
         }
-    
+
         const data = await response.json();
         if (data.taskboardId) {
           setUserTaskboardId(data.taskboardId);
@@ -60,67 +74,66 @@ const RegularUserApp = () => {
         console.error("Error fetching user taskboard ID:", error);
       }
     };
-    
 
     fetchTaskboardId();
   }, [navigate]);
 
   useEffect(() => {
     const fetchNotes = async () => {
-        const boardId = taskboardId;
-    
-        if (!boardId) {
-            console.error('Taskboard ID is missing');
-            return;
+      const boardId = taskboardId;
+
+      if (!boardId) {
+        console.error('Taskboard ID is missing');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No token available, redirecting to login.');
+          navigate('/login');
+          return;
         }
-    
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                console.error('No token available, redirecting to login.');
-                navigate('/login'); // Redirect to login if token is missing
-                return;
-            }
-    
-            const response = await fetch(`/api/tasks?taskboardId=${boardId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}` // Include the token in the Authorization header
-                }
-            });
-            
-            if (!response.ok) {
-                if (response.status === 403) {
-                    console.error('Access denied to the taskboard');
-                    navigate('/');
-                }
-                throw new Error(`Failed to fetch tasks: ${response.statusText}`);
-            }
-    
-            const data = await response.json();
-            console.log("Fetched tasks data:", data);  // Debugging line
 
-            if (!Array.isArray(data)) {
-                throw new Error('Fetched data is not an array');
-            }
+        const response = await fetch(`/api/tasks?taskboardId=${boardId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
-            const notes = data.map((task: any) => ({
-                id: task.m_id,
-                title: task.task_title,
-                content: task.task_content,
-                status: task.status,
-                importance: task.importance
-            }));
-
-            setNotes(notes);
-            console.log("Mapped notes:", notes);  // Debugging line
-        } catch (error) {
-            console.error("Error fetching tasks:", error);
+        if (!response.ok) {
+          if (response.status === 403) {
+            console.error('Access denied to the taskboard');
+            navigate('/');
+          }
+          throw new Error(`Failed to fetch tasks: ${response.statusText}`);
         }
+
+        const data = await response.json();
+        console.log("Fetched tasks data:", data);
+
+        if (!Array.isArray(data)) {
+          throw new Error('Fetched data is not an array');
+        }
+
+        const notes = data.map((task: any) => ({
+          id: task.m_id,
+          title: task.task_title,
+          content: task.task_content,
+          status: task.status,
+          importance: task.importance,
+          assignedUsers: task.assigned_users || [] // Store the usernames
+        }));
+
+        setNotes(notes);
+        console.log("Mapped notes:", notes);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
     };
 
     fetchNotes();
-}, [taskboardId, userTaskboardId, navigate]);
-
+  }, [taskboardId, userTaskboardId, navigate]);
 
   const handleAddNote = async (event: React.FormEvent) => {
     if (!currentColumn || !taskboardId) return;
@@ -167,15 +180,16 @@ const RegularUserApp = () => {
 
   const handleUpdateNote = async (event: React.FormEvent) => {
     if (!selectedNote) return;
-  
+
     const updatedNote: Note = {
       id: selectedNote.id,
       title: title,
       content: content,
       status: selectedNote.status,
       importance: importance,
+      assignedUsers: selectedNote.assignedUsers // Keep the assigned users intact
     };
-  
+
     try {
       const response = await fetch(`http://localhost:3001/api/${selectedNote.id}`, {
         method: "PUT",
@@ -184,11 +198,11 @@ const RegularUserApp = () => {
         },
         body: JSON.stringify(updatedNote),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to update note");
       }
-  
+
       const updatedNoteFromServer = await response.json();
       const updatedNotesList = notes.map((note) =>
         note.id === selectedNote.id ? updatedNoteFromServer : note
@@ -314,10 +328,26 @@ const RegularUserApp = () => {
                   <div
                     key={note.id}
                     className="note-item"
-                    onClick={() => handleNoteClick(note)}
+                    
                   >
                     <div className="note-title">{note.title}</div>
-                    <div className="note-content"><p>{note.content}</p></div>
+                    <div className="note-content">
+                      <p>{note.content}</p>
+                      <div className="note-assigned-users">
+                        {note.assignedUsers.length > 0 ? (
+                          <div>
+                            <strong>Assigned to:</strong>
+                            <ul>
+                              {note.assignedUsers.map((username) => (
+                                <li key={username}>{username}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : (
+                          <p>No users assigned</p>
+                        )}
+                      </div>
+                    </div>
                     <div className="note-importance">
                       <span className={`importance-tag ${note.importance.replace(/\s+/g, '-').toLowerCase()}`}>
                         {note.importance}
