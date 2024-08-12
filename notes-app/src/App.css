@@ -274,3 +274,246 @@
   align-items: center;
   font-size: 1em;
 }
+.sprint-board-header {
+  background-color: #e7e6e6;
+  padding: 20px 28px; /* Increased padding */
+  border-bottom: 1px solid #e1e4e8;
+  margin-top: 64px; /* Adjust based on AppBar height */
+  border-radius: 8px;
+  width: 100%; /* Full width */
+  box-sizing: border-box; /* Ensure padding is included in the width */
+}
+
+.sprint-board-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sprint-board-title {
+  font-size: 28px; /* Increased font size */
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.sprint-icon {
+  margin-right: 12px; /* Increased margin */
+  font-size: 28px; /* Increased icon size */
+}
+
+.beta-tag {
+  margin-left: 12px; /* Increased margin */
+  background-color: #e36209;
+  color: white;
+  padding: 4px 10px; /* Increased padding */
+  border-radius: 3px;
+  font-size: 14px; /* Increased font size */
+}
+
+.sprint-board-details {
+  display: flex;
+  align-items: center;
+}
+
+.current-sprint {
+  display: flex;
+  align-items: center;
+  margin-right: 20px; /* Increased margin */
+}
+
+.current-sprint-label {
+  font-size: 18px; /* Increased font size */
+  margin-right: 6px; /* Increased margin */
+}
+
+.dropdown-icon {
+  font-size: 14px; /* Increased font size */
+}
+
+.sprint-actions button {
+  background-color: white;
+  border: 1px solid #e1e4e8;
+  padding: 6px 10px; /* Increased padding */
+  margin-left: 10px; /* Increased margin */
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.sprint-actions button:hover {
+  background-color: #f3f4f6;
+}
+
+.new-button {
+  background-color: #0366d6;
+  color: white;
+  border: none;
+  padding: 6px 14px; /* Increased padding */
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 10px; /* Increased margin */
+}
+
+.new-button:hover {
+  background-color: #005cc5;
+}
+
+.sprint-board-subheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px; /* Increased margin */
+}
+
+.current-sprint-filter {
+  display: flex;
+  align-items: center;
+}
+
+.filter-tag {
+  background-color: #eaf5ff;
+  color: #0366d6;
+  border: none;
+  padding: 6px 10px; /* Increased padding */
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-right: 10px; /* Increased margin */
+}
+
+.add-filter-button {
+  background-color: transparent;
+  color: #0366d6;
+  border: none;
+  cursor: pointer;
+}
+
+.sprint-stats {
+  display: flex;
+  align-items: center;
+}
+
+.complete-sprint-button {
+  background-color: white;
+  border: 1px solid #e1e4e8;
+  padding: 6px 14px; /* Increased padding */
+  margin-left: 10px; /* Increased margin */
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.complete-sprint-button:hover {
+  background-color: #f3f4f6;
+}
+
+
+.sprint-icon {
+  margin-right: 12px; /* Increased margin */
+  font-size: 28px; /* Increased icon size */
+}
+
+.beta-tag {
+  margin-left: 12px; /* Increased margin */
+  background-color: #e36209;
+  color: white;
+  padding: 4px 10px; /* Increased padding */
+  border-radius: 3px;
+  font-size: 14px; /* Increased font size */
+}
+
+.sprint-board-details {
+  display: flex;
+  align-items: center;
+}
+
+.current-sprint {
+  display: flex;
+  align-items: center;
+  margin-right: 20px; /* Increased margin */
+}
+
+.current-sprint-label {
+  font-size: 18px; /* Increased font size */
+  margin-right: 6px; /* Increased margin */
+}
+
+.dropdown-icon {
+  font-size: 14px; /* Increased font size */
+}
+
+.sprint-actions button {
+  background-color: white;
+  border: 1px solid #e1e4e8;
+  padding: 6px 10px; /* Increased padding */
+  margin-left: 10px; /* Increased margin */
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.sprint-actions button:hover {
+  background-color: #f3f4f6;
+}
+
+.new-button {
+  background-color: #0366d6;
+  color: white;
+  border: none;
+  padding: 6px 14px; /* Increased padding */
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 10px; /* Increased margin */
+}
+
+.new-button:hover {
+  background-color: #005cc5;
+}
+
+.sprint-board-subheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px; /* Increased margin */
+}
+
+.current-sprint-filter {
+  display: flex;
+  align-items: center;
+}
+
+.filter-tag {
+  background-color: #eaf5ff;
+  color: #0366d6;
+  border: none;
+  padding: 6px 10px; /* Increased padding */
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-right: 10px; /* Increased margin */
+}
+
+.add-filter-button {
+  background-color: transparent;
+  color: #0366d6;
+  border: none;
+  cursor: pointer;
+}
+
+.sprint-stats {
+  display: flex;
+  align-items: center;
+}
+
+.complete-sprint-button {
+  background-color: white;
+  border: 1px solid #e1e4e8;
+  padding: 6px 14px; /* Increased padding */
+  margin-left: 10px; /* Increased margin */
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.complete-sprint-button:hover {
+  background-color: #f3f4f6;
+}

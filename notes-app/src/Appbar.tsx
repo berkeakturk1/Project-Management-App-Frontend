@@ -141,7 +141,7 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
           <IconButton color="inherit">
             <SettingsIcon />
           </IconButton>
-          <Avatar alt="User Avatar" src="/static/images/avatar/1.jpg" />
+          <Avatar alt="User Avatar" src="" />
           <Button color="inherit" onClick={handleLogout}>Logout</Button>
         </Toolbar>
       </AppBar>

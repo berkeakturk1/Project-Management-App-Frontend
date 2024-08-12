@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import "./App.css";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import AppBar from "./Appbar";
+import { Select, MenuItem, Checkbox, ListItemText, FormControl, InputLabel } from "@mui/material";
+import SprintBoardHeader from "./SprintBoardHeader";
+
 
 interface Note {
   id: number;
@@ -28,11 +31,12 @@ const App = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [importance, setImportance] = useState("No time Constraint");
-  const [workforce, setWorkforce] = useState<WorkforceMember[]>([]);  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [workforce, setWorkforce] = useState<WorkforceMember[]>([]);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [currentColumn, setCurrentColumn] = useState<string | null>(null);
-  const [selectedWorkforce, setSelectedWorkforce] = useState('');
+  const [selectedWorkforce, setSelectedWorkforce] = useState<string[]>([]);
 
   const { taskboardId } = useParams<{ taskboardId: string }>();
   const navigate = useNavigate();
@@ -48,7 +52,7 @@ const App = () => {
         console.error('Error fetching workforce:', error);
       }
     };
-  
+
     fetchWorkforce();
   }, [taskboardId]);
 
@@ -58,7 +62,7 @@ const App = () => {
         console.error('Taskboard ID is missing');
         return;
       }
-
+  
       try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -66,13 +70,13 @@ const App = () => {
           navigate('/login'); // Redirect to login if token is missing
           return;
         }
-
+  
         const response = await fetch(`/api/tasks?taskboardId=${taskboardId}`, {
           headers: {
             'Authorization': `Bearer ${token}`  // Add Bearer prefix
           }
         });
-        
+  
         if (!response.ok) {
           if (response.status === 403) {
             console.error('Access denied to the taskboard');
@@ -80,93 +84,68 @@ const App = () => {
           }
           throw new Error(`Failed to fetch tasks: ${response.statusText}`);
         }
-
+  
         const data = await response.json();
         console.log("Fetched tasks data:", data);
-
+  
         if (!Array.isArray(data)) {
           throw new Error('Fetched data is not an array');
         }
-
+  
         const notes = data.map((task: any) => ({
-          id: task.m_id,
+          id: task.m_id, // Ensure this field is correctly mapped
           title: task.task_title,
           content: task.task_content,
           status: task.status,
           importance: task.importance
         }));
-
+  
         setNotes(notes);
       } catch (error) {
         console.error("Error fetching tasks:", error);
       }
     };
-
+  
     fetchNotes();
   }, [taskboardId, navigate]);
 
-
-  const moveToPreviousColumn = (note: Note, event: React.MouseEvent) => {
-    // event.stopPropagation();
-    let newStatus = note.status;
-    if (note.status === "in-progress") {
-      newStatus = "todo";
-    } else if (note.status === "code-review") {
-      newStatus = "in-progress";
-    }
-  
-    const updatedNote = { ...note, status: newStatus };
-  
-    fetch(`http://localhost:3001/api/${note.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedNote),
-    })
-      .then((response) => response.json())
-      .then((updatedNoteFromServer) => {
-        setNotes((prevNotes) =>
-          prevNotes.map((n) => (n.id === note.id ? updatedNoteFromServer : n))
-        );
-      })
-      .catch((error) => console.error("Error updating note:", error));
-  };
-
   const handleAddNote = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!currentColumn || !taskboardId) return;
 
     const newNote = {
-      title: title,
-      content: content,
-      status: currentColumn,
-      importance: importance,
-      taskboardId: parseInt(taskboardId, 10)
+        title: title,
+        content: content,
+        status: currentColumn,
+        importance: importance,
+        taskboardId: parseInt(taskboardId, 10),
+        assignedTo: selectedWorkforce // Pass selected users
     };
 
     try {
-      const response = await fetch("http://localhost:3001/api", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newNote),
-      });
+        const response = await fetch("http://localhost:3001/api/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newNote),
+        });
 
-      if (!response.ok) {
-        throw new Error("Failed to add note");
-      }
+        if (!response.ok) {
+            throw new Error("Failed to add note");
+        }
 
-      const addedNote: Note = await response.json();
-      setNotes([addedNote, ...notes]);
-      setTitle("");
-      setContent("");
-      setImportance("No time Constraint");
-      setIsPopupOpen(false);
+        const addedNote = await response.json();
+        setNotes([addedNote, ...notes]);
+        setTitle("");
+        setContent("");
+        setImportance("No time Constraint");
+        setSelectedWorkforce([]); // Clear selected workforce
+        setIsPopupOpen(false);
     } catch (error) {
-      console.error("Error adding note:", error);
+        console.error("Error adding note:", error);
     }
-  };
+};
 
   const handleNoteClick = (note: Note) => {
     setSelectedNote(note);
@@ -177,43 +156,77 @@ const App = () => {
   };
 
   const handleUpdateNote = async (event: React.FormEvent) => {
-    if (!selectedNote) return;
-  
-    const updatedNote: Note = {
-      id: selectedNote.id,
-      title: title,
-      content: content,
-      status: selectedNote.status,
-      importance: importance,
-    };
-  
-    try {
-      const response = await fetch(`http://localhost:3001/api/${selectedNote.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedNote),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to update note");
-      }
-  
-      const updatedNoteFromServer = await response.json();
-      const updatedNotesList = notes.map((note) =>
-        note.id === selectedNote.id ? updatedNoteFromServer : note
-      );
-      setNotes(updatedNotesList);
-      setTitle("");
-      setContent("");
-      setImportance("No time Constraint");
-      setSelectedNote(null);
-      setIsEditPopupOpen(false);
-    } catch (error) {
-      console.error("Error updating note:", error);
+    event.preventDefault();
+
+    if (!selectedNote) {
+        console.error("No note selected for updating.");
+        return;
     }
-  };
+
+    // Log the selected note's ID
+    console.log("Selected Note ID:", selectedNote.id);
+
+    // Prepare the updated note with the necessary fields
+    const updatedNote = {
+        id: selectedNote.id,
+        title: title,
+        content: content,
+        status: selectedNote.status,
+        importance: importance,
+        assignedTo: selectedWorkforce // Pass selected usernames to the backend
+    };
+
+    // Log the ID in the updated note payload
+    console.log("Updated Note Payload - ID:", updatedNote.id);
+
+    try {
+        // Send a PUT request to update the note
+        const response = await fetch(`http://localhost:3001/api/update/${selectedNote.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedNote),
+        });
+
+        // Log the response status
+        console.log("Response Status for Note ID", selectedNote.id, ":", response.status);
+
+        // Handle non-OK response
+        if (!response.ok) {
+            throw new Error("Failed to update note");
+        }
+
+        // Parse the updated note from the server's response
+        const updatedNoteFromServer = await response.json();
+
+        // Log the updated note's ID from the server response
+        console.log("Updated Note from Server - ID:", updatedNoteFromServer.id);
+
+        // Update the local state with the updated note
+        const updatedNotesList = notes.map((note) =>
+            note.id === selectedNote.id ? updatedNoteFromServer : note
+        );
+        
+        // Log the IDs of all notes in the updated notes list
+        console.log("Updated Notes List IDs:", updatedNotesList.map(note => note.id));
+
+        setNotes(updatedNotesList);
+
+        // Clear the form and close the popup
+        setTitle("");
+        setContent("");
+        setImportance("No time Constraint");
+        setSelectedWorkforce([]); // Clear selected workforce
+        setIsEditPopupOpen(false);
+    } catch (error) {
+        // Log the error with specific reference to the note ID
+        console.error("Error updating note with ID", selectedNote.id, ":", error);
+    }
+};
+
+
+
 
   const handleDeleteNote = async (id: number, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -274,6 +287,12 @@ const App = () => {
     }
   };
 
+  const handleWorkforceSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(event.target.selectedOptions, option => option.value);
+    setSelectedWorkforce(selectedOptions);
+    console.log('Selected workforce:', selectedOptions);
+  };
+
   const togglePopup = (columnId: string) => {
     setTitle("");
     setContent("");
@@ -284,6 +303,7 @@ const App = () => {
 
   return (
     <div className="app-container">
+      <SprintBoardHeader />
       {isPopupOpen && (
         <div className="popup">
           <div className="popup-content">
@@ -310,21 +330,33 @@ const App = () => {
                 <option value="Low time Constraint">Low time Constraint</option>
                 <option value="Medium time constraint">Medium time constraint</option>
                 <option value="High time constraint">High time constraint</option>
-              </select>
+              </select> 
 
-              <select
-                value={selectedWorkforce}
-                onChange={(event) => setSelectedWorkforce(event.target.value)}
-                required
-              >
-                <option value="">Select Workforce</option>
-                {workforce.map((worker, index) => (
-                  <option key={index} value={worker.username}>
-                    {worker.username}
-                  </option>
-                ))}
-              </select>
-              
+              <FormControl fullWidth margin="normal">
+  <InputLabel id="workforce-select-label">Select Workforce</InputLabel>
+  <Select
+    labelId="workforce-select-label"
+    id="workforce-select"
+    multiple
+    value={selectedWorkforce}
+    onChange={(event) => {
+      const value = event.target.value;
+      setSelectedWorkforce(
+        typeof value === 'string' ? value.split(',') : value
+      );
+    }}
+    label="Select Workforce"
+    renderValue={(selected) => selected.join(', ')}
+  >
+    {workforce.map((worker) => (
+      <MenuItem key={worker.username} value={worker.username}>
+        <Checkbox checked={selectedWorkforce.indexOf(worker.username) > -1} />
+        <ListItemText primary={worker.username} />
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
               <button type="submit">Add Note</button>
               <button type="button" onClick={() => setIsPopupOpen(false)}>Close</button>
             </form>
@@ -359,18 +391,31 @@ const App = () => {
                 <option value="High time constraint">High time constraint</option>
               </select>
 
-              <select
-                value={selectedWorkforce}
-                onChange={(event) => setSelectedWorkforce(event.target.value)}
-                required
-              >
-                <option value="">Select Workforce</option>
-                {workforce.map((worker, index) => (
-                  <option key={index} value={worker.username}>
-                    {worker.username}
-                  </option>
-                ))}
-              </select>
+              <FormControl fullWidth margin="normal">
+  <InputLabel id="workforce-select-label">Select Workforce</InputLabel>
+  <Select
+    labelId="workforce-select-label"
+    id="workforce-select"
+    multiple
+    value={selectedWorkforce}
+    onChange={(event) => {
+      const value = event.target.value;
+      setSelectedWorkforce(
+        typeof value === 'string' ? value.split(',') : value
+      );
+    }}
+    label="Select Workforce"
+    renderValue={(selected) => selected.join(', ')}
+  >
+    {workforce.map((worker) => (
+      <MenuItem key={worker.username} value={worker.username}>
+        <Checkbox checked={selectedWorkforce.indexOf(worker.username) > -1} />
+        <ListItemText primary={worker.username} />
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
 
               <button type="submit">Update Note</button>
               <button type="button" onClick={() => setIsEditPopupOpen(false)}>Close</button>
