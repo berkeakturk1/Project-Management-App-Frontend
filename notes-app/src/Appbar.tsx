@@ -55,6 +55,10 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
     navigate('/teams');
   };
 
+  const handleMyTasksClick = () => {
+    navigate("/mytasks");
+  }
+
   const getButtonStyle = (path: string) => ({
     textTransform: 'none',
     fontSize: '18px',
@@ -116,7 +120,7 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
           <Button color="inherit" sx={getButtonStyle('/workspace')} onClick={handleWorkspacesClick}>Workspace</Button>
           <Button color="inherit" sx={getButtonStyle('/filters')}>Sprints</Button>
           <Button color="inherit" sx={getButtonStyle('/your-work')}>Retrospectives</Button>
-          <Button color="inherit" sx={getButtonStyle('/dashboards')}>Dashboard</Button>
+          <Button color="inherit" sx={getButtonStyle('/mytasks')} onClick={handleMyTasksClick}>My Tasks</Button>
           <Button color="inherit" sx={getButtonStyle('/teams')} onClick={handleTeamsClick}>Teams</Button>
           <Box sx={{ flexGrow: 1 }} />
           <Button variant="contained" color="primary" sx={{ textTransform: 'none', fontSize: '18px' }} onClick={handleOpen}>

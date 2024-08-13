@@ -6,6 +6,7 @@ import MyAppBar from './Appbar';
 import RegularUserApp from "./RegularUserApp";
 import WorkspacePage from "./Workspace";
 import Teams from "./Teams";
+import MyTasks from "./MyTasks";
 import Loading from './loading'; // Import the Loading component
 import { Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
 
@@ -69,6 +70,7 @@ const Main = () => {
             <Route path="/taskboard/:taskboardId" element={userType === 'admin' ? <App/> : <RegularUserApp/>}/>
             <Route path="/" element={isAuthenticated ? <Navigate to={'/workspace'} /> : <Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/mytasks" element={<MyTasks />} />
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/taskboard_user" element={<RegularUserApp />} />
             <Route path="/Home" element={isAuthenticated ? <WorkspacePage /> : <Navigate to="/" />} />

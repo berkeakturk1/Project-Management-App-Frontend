@@ -1,0 +1,34 @@
+.task-table {
+    width: 100%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+.task-table table {
+    width: 100%;
+    border: 1px solid #ddd;
+}
+
+.task-table th, .task-table td {
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.task-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.task-table td {
+    vertical-align: middle;
+}
+
+.task-table .late {
+    color: red;
+    font-weight: bold;
+}
+
+.task-table input[type="checkbox"] {
+    cursor: pointer;
+}
