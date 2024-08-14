@@ -6,6 +6,12 @@
   font-style: normal;
 }
 
+.note-due-date {
+  margin-top: 10px;
+  color: #000000; /* Example color for due date text */
+  font-size: 14px;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;

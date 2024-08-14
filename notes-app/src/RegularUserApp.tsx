@@ -10,6 +10,8 @@ interface Note {
   content: string;
   status: string;
   importance: string;
+  dueDate?: string;   // Optional field for due date
+  dueTime?: string;   // Optional field for due time
   assignedUsers: string[]; // New field to store usernames
 }
 
@@ -30,21 +32,22 @@ const RegularUserApp = () => {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [currentColumn, setCurrentColumn] = useState<string | null>(null);
   const [userTaskboardId, setUserTaskboardId] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState<string | undefined>(selectedNote?.dueDate);
+  const [dueTime, setDueTime] = useState<string | undefined>(selectedNote?.dueTime);
 
   const { taskboardId } = useParams<{ taskboardId: string }>();
   const navigate = useNavigate();
 
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
 
-// Fetch the logged-in user's ID from the token
-useEffect(() => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    const decodedToken: any = jwtDecode(token); // Use a JWT decoding library
-    setLoggedInUserId(decodedToken.userId);
-  }
-}, []);
-
+  // Fetch the logged-in user's ID from the token
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decodedToken: any = jwtDecode(token); // Use a JWT decoding library
+      setLoggedInUserId(decodedToken.userId);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchTaskboardId = async () => {
@@ -122,6 +125,8 @@ useEffect(() => {
           content: task.task_content,
           status: task.status,
           importance: task.importance,
+          dueDate: task.due_date,   // Include due date
+          dueTime: task.due_time,   // Include due time
           assignedUsers: task.assigned_users || [] // Store the usernames
         }));
 
@@ -143,6 +148,8 @@ useEffect(() => {
       content: content,
       status: currentColumn,
       importance: importance,
+      dueDate: dueDate, // Include due date
+      dueTime: dueTime, // Include due time
       taskboardId: parseInt(taskboardId, 10)
     };
 
@@ -164,6 +171,8 @@ useEffect(() => {
       setTitle("");
       setContent("");
       setImportance("No time Constraint");
+      setDueDate(undefined); // Clear due date
+      setDueTime(undefined); // Clear due time
       setIsPopupOpen(false);
     } catch (error) {
       console.error("Error adding note:", error);
@@ -175,6 +184,8 @@ useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
     setImportance(note.importance);
+    setDueDate(note.dueDate);  // Set due date
+    setDueTime(note.dueTime);  // Set due time
     setIsEditPopupOpen(true);
   };
 
@@ -187,11 +198,13 @@ useEffect(() => {
       content: content,
       status: selectedNote.status,
       importance: importance,
+      dueDate: dueDate, // Include due date
+      dueTime: dueTime, // Include due time
       assignedUsers: selectedNote.assignedUsers // Keep the assigned users intact
     };
 
     try {
-      const response = await fetch(`http://localhost:3001/api/${selectedNote.id}`, {
+      const response = await fetch(`http://localhost:3001/api/update/${selectedNote.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -205,12 +218,14 @@ useEffect(() => {
 
       const updatedNoteFromServer = await response.json();
       const updatedNotesList = notes.map((note) =>
-        note.id === selectedNote.id ? updatedNoteFromServer : note
+          note.id === selectedNote.id ? updatedNoteFromServer : note
       );
       setNotes(updatedNotesList);
       setTitle("");
       setContent("");
       setImportance("No time Constraint");
+      setDueDate(undefined); // Clear due date
+      setDueTime(undefined); // Clear due time
       setSelectedNote(null);
       setIsEditPopupOpen(false);
     } catch (error) {
@@ -239,133 +254,160 @@ useEffect(() => {
     setTitle("");
     setContent("");
     setImportance("No time Constraint");
+    setDueDate(undefined); // Clear due date
+    setDueTime(undefined); // Clear due time
     setCurrentColumn(columnId);
     setIsPopupOpen(!isPopupOpen);
   };
 
   return (
-    <div className="app-container">
-      {isPopupOpen && (
-        <div className="popup">
-          <div className="popup-content">
-            <form onSubmit={handleAddNote} className="note-form">
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Title"
-                required
-              ></input>
-              <textarea
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Content"
-                rows={10}
-                required
-              ></textarea>
-              <select
-                value={importance}
-                onChange={(event) => setImportance(event.target.value)}
-                required
-              >
-                <option value="No time Constraint">No time Constraint</option>
-                <option value="Low time Constraint">Low time Constraint</option>
-                <option value="Medium time constraint">Medium time constraint</option>
-                <option value="High time constraint">High time constraint</option>
-              </select>
-              <button type="submit">Add Note</button>
-              <button type="button" onClick={() => setIsPopupOpen(false)}>Close</button>
-            </form>
-          </div>
-        </div>
-      )}
-      {isEditPopupOpen && (
-        <div className="popup">
-          <div className="popup-content">
-            <form onSubmit={handleUpdateNote} className="note-form">
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Title"
-                required
-              ></input>
-              <textarea
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Content"
-                rows={10}
-                required
-              ></textarea>
-              <select
-                value={importance}
-                onChange={(event) => setImportance(event.target.value)}
-                required
-              >
-                <option value="No time Constraint">No time Constraint</option>
-                <option value="Low time Constraint">Low time Constraint</option>
-                <option value="Medium time constraint">Medium time constraint</option>
-                <option value="High time constraint">High time constraint</option>
-              </select>
-              <button type="submit">Update Note</button>
-              <button type="button" onClick={() => setIsEditPopupOpen(false)}>Close</button>
-            </form>
-          </div>
-        </div>
-      )}
-      <div className="columns">
-        {Object.entries(columns).map(([columnId, columnTitle]) => {
-          const columnNotes = notes.filter((note) => note.status === columnId);
-          return (
-            <div className="column" key={columnId}>
-              <div className="column-header">
-                <h2>{columnTitle} <span className="note-count">{columnNotes.length} &#9679;</span></h2>
-              </div>
-              {columnNotes.map((note) => {
-                if (!note.id) {
-                  console.error("Note ID is undefined:", note);
-                  return null;
-                }
-                return (
-                  <div
-                    key={note.id}
-                    className="note-item"
-                    
+      <div className="app-container">
+        {isPopupOpen && (
+            <div className="popup">
+              <div className="popup-content">
+                <form onSubmit={handleAddNote} className="note-form">
+                  <input
+                      value={title}
+                      onChange={(event) => setTitle(event.target.value)}
+                      placeholder="Title"
+                      required
+                  />
+                  <textarea
+                      value={content}
+                      onChange={(event) => setContent(event.target.value)}
+                      placeholder="Content"
+                      rows={10}
+                      required
+                  />
+                  <select
+                      value={importance}
+                      onChange={(event) => setImportance(event.target.value)}
+                      required
                   >
-                    <div className="note-title">{note.title}</div>
-                    <div className="note-content">
-                      <p>{note.content}</p>
-                      <div className="note-assigned-users">
-                        {note.assignedUsers.length > 0 ? (
-                          <div>
-                            <strong>Assigned to:</strong>
-                            <ul>
-                              {note.assignedUsers.map((username) => (
-                                <li key={username}>{username}</li>
-                              ))}
-                            </ul>
+                    <option value="No time Constraint">No time Constraint</option>
+                    <option value="Low time Constraint">Low time Constraint</option>
+                    <option value="Medium time constraint">Medium time constraint</option>
+                    <option value="High time constraint">High time constraint</option>
+                  </select>
+
+                  {/* Due Date Field */}
+                  <input
+                      type="date"
+                      value={dueDate || ''} // Use the existing dueDate state or an empty string if it's undefined
+                      onChange={(event) => setDueDate(event.target.value)}
+                      placeholder="Due Date"
+                  />
+
+                  {/* Due Time Field */}
+                  <input
+                      type="time"
+                      value={dueTime || ''} // Use the existing dueTime state or an empty string if it's undefined
+                      onChange={(event) => setDueTime(event.target.value)}
+                      placeholder="Due Time"
+                  />
+
+                  <button type="submit">Add Note</button>
+                  <button type="button" onClick={() => setIsPopupOpen(false)}>Close</button>
+                </form>
+              </div>
+            </div>
+        )}
+
+        <div className="columns">
+          {Object.entries(columns).map(([columnId, columnTitle]) => {
+            const columnNotes = notes.filter((note) => note.status === columnId);
+            return (
+                <div className="column" key={columnId}>
+                  <div className="column-header">
+                    <h2>{columnTitle} <span className="note-count">{columnNotes.length} &#9679;</span></h2>
+                  </div>
+                  {columnNotes.map((note) => {
+                    if (!note.id) {
+                      console.error("Note ID is undefined:", note);
+                      return null;
+                    }
+                    return (
+                        <div
+                            key={note.id}
+                            className="note-item"
+                            onClick={() => handleNoteClick(note)}
+                        >
+                          <div className="note-title">{note.title}</div>
+                          <div className="note-content">
+                            <p>{note.content}</p>
+                            <div className="note-assigned-users">
+                              {note.assignedUsers.length > 0 ? (
+                                  <div>
+                                    <strong>Assigned to:</strong>
+                                    <ul>
+                                      {note.assignedUsers.map((username) => (
+                                          <li key={username}>{username}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                              ) : (
+                                  <p>No users assigned</p>
+                              )}
+                            </div>
+                            <div className="note-due-date">
+                              {note.dueDate && (
+                                  <div>
+                                    <strong
+                                        style={{
+                                          color: (() => {
+                                            const dueDateTime = new Date(`${note.dueDate}T${note.dueTime || '23:59'}`);
+                                            const now = new Date();
+                                            return dueDateTime.getTime() < now.getTime() ? 'red' : 'inherit';
+                                          })(),
+                                        }}
+                                    >
+                                      Due Date:
+                                    </strong>
+                                    <span
+                                        style={{
+                                          color: (() => {
+                                            const dueDateTime = new Date(`${note.dueDate}T${note.dueTime || '23:59'}`);
+                                            const now = new Date();
+                                            return dueDateTime.getTime() < now.getTime() ? 'red' : 'inherit';
+                                          })(),
+                                        }}
+                                    >
+        {note.dueDate} {note.dueTime}
+      </span>
+
+                                    {(() => {
+                                      const dueDateTime = new Date(`${note.dueDate}T${note.dueTime || '23:59'}`);
+                                      const now = new Date();
+                                      return dueDateTime.getTime() < now.getTime() ? (
+                                          <span style={{color: 'red', fontWeight: 'bold', marginLeft: '10px'}}>
+            Overdue!
+          </span>
+                                      ) : null;
+                                    })()}
+                                  </div>
+                              )}
+                            </div>
+
+
                           </div>
-                        ) : (
-                          <p>No users assigned</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="note-importance">
+                          <div className="note-importance">
                       <span className={`importance-tag ${note.importance.replace(/\s+/g, '-').toLowerCase()}`}>
                         {note.importance}
                       </span>
-                    </div>
-                    {note.status === "done" && (
-                      <div className="checkmark-icon">
-                        ✅ 
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+                          </div>
+                          {note.status === "done" && (
+                              <div className="checkmark-icon">
+                                ✅
+                              </div>
+                          )}
+                        </div>
+                    );
+                  })}
+                </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
   );
 };
 
