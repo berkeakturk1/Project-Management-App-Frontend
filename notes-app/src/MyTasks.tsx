@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-    Checkbox,
     Table,
     TableBody,
     TableCell,
@@ -19,6 +18,7 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import "./MyTasks.css";
 import { tableCellClasses } from "@mui/material/TableCell";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface Task {
     id: number;
@@ -57,8 +57,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 const MyTasks: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [completedTasks, setCompletedTasks] = useState<number>(0);
-    const [ws, setWs] = useState<WebSocket | null>(null);
-
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -101,8 +99,6 @@ const MyTasks: React.FC = () => {
         return () => clearInterval(interval); // Cleanup on component unmount
     }, []);
 
-
-
     const handleFlagForReview = async (taskId: number) => {
         try {
             const response = await fetch(`/api/flag-task/${taskId}`, {
@@ -120,17 +116,15 @@ const MyTasks: React.FC = () => {
 
             // Update task in state
             setTasks(prevTasks =>
-                prevTasks.map(task =>
-                    task.id === taskId ? { ...task, status: "codeReview", flaggedForReview: true } : task
-                )
+                prevTasks.map(task => {
+                    console.log(`Task ID: ${task.id}, Status: ${task.status}`);  // Debugging line
+                    return task.id === taskId ? { ...task, status: "codeReview", flaggedForReview: true } : task;
+                })
             );
         } catch (error) {
             console.error("Error flagging task for review:", error);
         }
     };
-
-
-
 
     const formatDateTime = (dueDate?: string, dueTime?: string) => {
         if (!dueDate) {
@@ -176,17 +170,26 @@ const MyTasks: React.FC = () => {
 
                                         </StyledTableCell>
                                         <StyledTableCell align="center">
-                                            <Tooltip title="Flag for Review">
-                                                <IconButton onClick={() => handleFlagForReview(task.id)}>
-                                                    {task.status === "codeReview" || task.flaggedForReview ? (
-                                                        <FlagIcon sx={{ color: '#4caf50' }} />
-                                                    ) : (
-                                                        <FlagOutlinedIcon sx={{ color: '#4caf50' }} />
-                                                    )}
-                                                </IconButton>
+                                            <Tooltip title={task.status === "done" ? "Task Completed" : "Flag for Review"}>
+                                                <span>
+                                                    <IconButton
+                                                        onClick={task.status !== "done" ? () => handleFlagForReview(task.id) : undefined}
+                                                        disabled={task.status === "done"} // Disable the button if the task is done
+                                                        sx={{ color: task.status === "done" ? '#4caf50' : 'inherit' }}
+                                                    >
+                                                        {task.status === "done" ? (
+                                                            <CheckCircleIcon sx={{ color: '#4caf50' }} />
+                                                        ) : (
+                                                            task.status === "codeReview" || task.flaggedForReview ? (
+                                                                <FlagIcon sx={{ color: '#4caf50' }} />
+                                                            ) : (
+                                                                <FlagOutlinedIcon sx={{ color: '#4caf50' }} />
+                                                            )
+                                                        )}
+                                                    </IconButton>
+                                                </span>
                                             </Tooltip>
                                         </StyledTableCell>
-
                                     </StyledTableRow>
                                 ))}
                             </TableBody>

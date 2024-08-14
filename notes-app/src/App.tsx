@@ -46,6 +46,7 @@ const App = () => {
 
     const { taskboardId } = useParams<{ taskboardId: string }>();
   const navigate = useNavigate();
+    const [ws, setWs] = useState<WebSocket | null>(null);
 
   useEffect(() => {
     const fetchWorkforce = async () => {
@@ -117,6 +118,12 @@ const App = () => {
         };
 
         fetchNotes();
+
+        const interval = setInterval(() => {
+            fetchNotes();
+        }, 5000); // Poll every 5 seconds
+
+        return () => clearInterval(interval);
     }, [taskboardId, navigate]);
 
 

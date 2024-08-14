@@ -6,8 +6,8 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import Badge from '@mui/material/Badge'; // Import Badge component
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Avatar from '@mui/material/Avatar';
@@ -48,6 +48,7 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
   const [hiddenButtons, setHiddenButtons] = useState<string[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMoreMenuOpen = Boolean(anchorEl);
+  const [notifications, setNotifications] = useState(0); // State to track notifications
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -139,6 +140,10 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
     setHiddenButtons(newHiddenButtons);
   };
 
+  const incrementNotifications = () => {
+    setNotifications(notifications + 1);
+  };
+
   useEffect(() => {
     checkOverflow();
     window.addEventListener('resize', checkOverflow);
@@ -177,11 +182,12 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton type="submit" sx={{ p: '10px' }} aria-label="search">
-
               </IconButton>
             </Box>
             <IconButton color="inherit">
-              <NotificationsIcon />
+              <Badge badgeContent={notifications} color="error">
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
             <IconButton color="inherit">
               <HelpOutlineIcon />
