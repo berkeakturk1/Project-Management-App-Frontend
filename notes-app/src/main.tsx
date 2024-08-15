@@ -8,6 +8,7 @@ import WorkspacePage from "./Workspace";
 import Teams from "./Teams";
 import MyTasks from "./MyTasks";
 import Loading from './loading'; // Import the Loading component
+import SprintManagement from './SprintManagement';
 import { Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 const Main = () => {
@@ -71,6 +72,7 @@ const Main = () => {
             <Route path="/" element={isAuthenticated ? <Navigate to={'/workspace'} /> : <Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/mytasks" element={<MyTasks />} />
+            <Route path="/SprintManagement" element={<SprintManagement />} />
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/taskboard_user" element={<RegularUserApp />} />
             <Route path="/Home" element={isAuthenticated ? <WorkspacePage /> : <Navigate to="/" />} />

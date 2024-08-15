@@ -57,6 +57,10 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
     navigate('/workspace');
   };
 
+  const handleSprintsClick = () => {
+    navigate('/SprintManagement');
+  }
+
   const handleTeamsClick = () => {
     navigate('/teams');
   };
@@ -167,7 +171,7 @@ const MyAppBar: React.FC<MyAppBarProps> = ({ handleLogout }) => {
                 <Button id="workspace" color="inherit" sx={getButtonStyle('/workspace')} className="button-action" onClick={handleWorkspacesClick}>Workspace</Button>
             )}
             {!hiddenButtons.includes('filters') && (
-                <Button id="filters" color="inherit" sx={getButtonStyle('/filters')} className="button-action">Sprints</Button>
+                <Button id="filters" color="inherit" sx={getButtonStyle('/SprintManagement')} className="button-action" onClick={handleSprintsClick}>Sprints</Button>
             )}
             {!hiddenButtons.includes('your-work') && (
                 <Button id="your-work" color="inherit" sx={getButtonStyle('/your-work')} className="button-action">Retrospectives</Button>
